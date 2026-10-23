@@ -22,6 +22,7 @@ from .e_mnist import EMNIST
 from .face_pointing import FacePointing
 from .fashion_mnist import FashionMNIST
 from .sign_language_mnist import SignLanguageMNIST
+from .chars74k import Chars74K
 
 # from .celeb_a import CelebA
 from .fgvc_aircraft import FGVCAircraft
@@ -90,4 +91,5 @@ __all__ = [
     "TinyImagenet",
     "TinyImagenetC",
     "SignLanguageMNIST",
+    "Chars74K",
 ]
