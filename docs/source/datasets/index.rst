@@ -58,6 +58,7 @@ Available Datasets
    awa2
    beans
    stl10
+   sign_language_mnist
    tiny_imagenet
    tiny_imagenet_c
    e_mnist

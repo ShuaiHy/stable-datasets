@@ -21,6 +21,7 @@ from .dtd import DTD
 from .e_mnist import EMNIST
 from .face_pointing import FacePointing
 from .fashion_mnist import FashionMNIST
+from .sign_language_mnist import SignLanguageMNIST
 
 # from .celeb_a import CelebA
 from .fgvc_aircraft import FGVCAircraft
@@ -88,4 +89,5 @@ __all__ = [
     "SVHN",
     "TinyImagenet",
     "TinyImagenetC",
+    "SignLanguageMNIST",
 ]
