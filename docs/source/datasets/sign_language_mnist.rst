@@ -27,6 +27,33 @@ Dataset statistics:
    :width: 90%
    :alt: Sign Language MNIST sample images
 
+
+Data Source
+-----------
+
+The dataset is downloaded directly from the original
+Sign Language MNIST dataset published on Kaggle.
+
+The builder uses the official Kaggle Dataset Download API.
+
+The downloaded ZIP archive contains the following CSV files:
+
+- ``sign_mnist_train.csv``: training data
+- ``sign_mnist_test.csv``: test data
+
+The archive also includes copies of these CSV files
+inside separate train and test directories.
+
+The builder selects the root-level CSV files to
+avoid processing duplicate data.
+
+Each CSV row contains a label and 784 pixel values.
+Pixel values are integers between 0 and 255.
+
+The original training and test splits are preserved.
+No custom split is introduced.
+
+
 Data Structure
 --------------
 
@@ -45,6 +72,7 @@ Each sample is returned as a dictionary with two fields:
      - int
      - Class index in the range 0-23
 
+
 Label Mapping
 -------------
 
@@ -54,6 +82,10 @@ but excludes indices 9 (J) and 25 (Z).
 This builder maps the 24 existing classes to
 contiguous indices 0-23 while preserving their
 alphabetical order.
+
+The original labels and their mapped values are
+validated during dataset preparation.
+
 
 Usage Example
 -------------
@@ -69,47 +101,83 @@ Usage Example
    print(len(test_ds))   # 7172
 
    sample = train_ds[0]
-
    image = sample["image"]
    label = sample["label"]
 
    print(image.size)  # (28, 28)
+   print(image.mode)  # L
    print(label)
+
 
 Validation
 ----------
 
-The dataset was validated using offline parsing tests,
-full train/test split checks, and a supervised CNN
-classification experiment.
+The implementation was validated using offline unit tests
+and real-data integration tests.
 
-A small CNN was trained for three epochs using Adam,
-a learning rate of 0.001, batch size 64 and seed 42,
-without data augmentation.
+The offline tests cover:
 
-The model achieved:
+- Label mapping across all 24 classes
+- Train/test CSV selection
+- CSV header validation
+- Missing CSV files
+- Invalid labels
+- Invalid pixel values
+- CSV-to-image conversion
 
-- Test accuracy: 89.04%
-- Test cross-entropy loss: 0.4134
+The real-data integration test downloads the original
+Kaggle dataset and validates:
 
-The experiment ran on Apple Silicon using PyTorch MPS.
+- Training samples: 27,455
+- Test samples: 7,172
+- Number of classes: 24
+- Image resolution: 28 x 28
+- Image mode: grayscale
+- Original CSV header and label set
+- Loading through the public dataset API
 
-To reproduce the benchmark, run from the repository root:
+Run all tests, including real-data integration, with:
 
 .. code-block:: bash
 
-   python examples/sign_language_mnist_train_eval.py
+   pytest stable_datasets/tests/images/test_sign_language_mnist.py -v
+
+   pytest stable_datasets/tests/images/test_sign_language_mnist.py -v
+
+The real-data test requires network access to Kaggle.
+
+The dataset successfully passed all 14 tests,
+including the real-data integration test.
+
+
+License
+-------
+
+The original Sign Language MNIST dataset is published
+on Kaggle under the CC0: Public Domain license.
+
+For the original license information, refer to
+the Kaggle dataset page.
+
+
+Citation
+--------
+
+If you use Sign Language MNIST in your research,
+please reference the original Kaggle dataset.
+
+.. code-block:: bibtex
+
+   @misc{sign_language_mnist,
+       title={Sign Language MNIST},
+       author={{DataMunge}},
+       howpublished={Kaggle dataset},
+       url={https://www.kaggle.com/datasets/datamunge/sign-language-mnist}
+   }
 
 
 References
 ----------
 
-- Original dataset:
-  `Sign Language MNIST (Kaggle) <https://www.kaggle.com/datasets/datamunge/sign-language-mnist>`_
-
-- Download mirror:
-  `Sign Language GitHub Repository <https://github.com/Elsaraf1/sign-language>`_
-
-The builder downloads the CSV archives from a public
-GitHub mirror. Please consult the original dataset page
-for attribution and usage conditions.
+- `Sign Language MNIST (Kaggle) <https://www.kaggle.com/datasets/datamunge/sign-language-mnist>`_
+- `Kaggle Dataset Download API <https://www.kaggle.com/api/v1/datasets/download/datamunge/sign-language-mnist>`_

@@ -7,23 +7,30 @@ Overview
 
 Chars74K EnglishHnd is a handwritten character recognition
 dataset containing 3,410 images across 62 character classes.
-
 The classes include digits (0-9), uppercase letters (A-Z),
 and lowercase letters (a-z).
 
+This implementation uses the first official train/test split
+provided with the Chars74K dataset.
+
 Dataset statistics:
 
-- Total samples: 3,410
-- Training samples: 2,728
-- Test samples: 682
+- Total images: 3,410
+- Training samples (official split 1): 310
+- Test samples (official split 1): 1,674
 - Number of classes: 62
 - Original images: variable resolution
 - Task: image classification
+
+The official split does not use all 3,410 images.
+The remaining images are not assigned to the selected
+training or test split.
 
 .. image:: teasers/chars74k_teaser.png
    :align: center
    :width: 90%
    :alt: Chars74K EnglishHnd sample images
+
 
 Data Structure
 --------------
@@ -43,6 +50,7 @@ Each sample is returned as a dictionary:
      - int
      - Class index from 0 to 61
 
+
 Label Mapping
 -------------
 
@@ -56,21 +64,50 @@ The dataset uses 62 class folders, named
 The builder maps each class to the corresponding
 zero-based class index.
 
+Official labels are also checked against the image
+folder names during dataset preparation.
+
+
 Train/Test Split
 ----------------
 
-This implementation uses a deterministic 80/20 split
-within each class, based on the image filename number.
+This implementation uses the official Chars74K
+EnglishHnd split definitions instead of a custom
+train/test split.
 
-Images with ``(sample_id - 1) % 5 == 0`` belong to
-the test split; all other images belong to the
-training split.
+The image archive is ``EnglishHnd.tgz``.
+The official split definitions are stored in
+``Lists.tgz``.
 
-Each class contains 44 training samples and
-11 test samples.
+The builder reads the following MATLAB file:
 
-This is a custom split, not an official benchmark split.
-The same rule is used consistently across runs.
+``Lists/English/Hnd/lists_var_size.mat``
+
+The file contains:
+
+- ``ALLnames``: image filenames
+- ``ALLlabels``: official class labels
+- ``TRNind``: official training indices
+- ``TSTind``: official testing indices
+
+The official index arrays provide 30 split configurations.
+This implementation selects the first split
+(``OFFICIAL_SPLIT_INDEX = 0``).
+
+The builder removes zero-padding entries and converts
+MATLAB 1-based indices to Python 0-based indices.
+
+For the selected split:
+
+- Training samples: 310
+- Test samples: 1,674
+- Training classes: 62
+- Test classes: 62
+- Overlapping training/test samples: 0
+
+The remaining images are not automatically reassigned
+to either split.
+
 
 Usage Example
 -------------
@@ -82,8 +119,8 @@ Usage Example
    train_ds = Chars74K(split="train")
    test_ds = Chars74K(split="test")
 
-   print(len(train_ds))  # 2728
-   print(len(test_ds))   # 682
+   print(len(train_ds))  # 310
+   print(len(test_ds))   # 1674
 
    sample = train_ds[0]
    image = sample["image"]
@@ -92,46 +129,62 @@ Usage Example
    print(image.size, image.mode)
    print(label)
 
+
 Validation
 ----------
 
-The dataset was validated using offline unit tests,
-full archive inspection, and supervised CNN training.
+The dataset implementation was validated using
+offline unit tests and real-data integration tests.
 
-A small CNN was trained using:
+The tests cover:
 
-- Epochs: 10
-- Batch size: 32
-- Optimizer: Adam
-- Learning rate: 0.001
-- Loss: CrossEntropyLoss
-- Input resolution: 64 x 64 RGB
-- Random seed: 42
+- Label mapping across 62 classes
+- Official MATLAB split parsing
+- MATLAB zero-padding removal
+- Image filename normalization
+- Training and test sample generation
+- Invalid image paths and missing split files
+- Real-data loading through the public dataset API
+- Official training and test sample counts
+- Training/test index uniqueness and disjointness
 
-Benchmark results:
+The selected official split contains 310 training
+samples and 1,674 test samples.
 
-- Test accuracy: 64.52%
-- Test cross-entropy loss: 2.0381
+Both splits cover all 62 classes.
+No overlapping image indices were found.
 
-The experiment was run using PyTorch MPS on Apple Silicon.
-
-The 8-epoch run achieved 62.02% test accuracy and
-1.8814 test loss. Extending training to 10 epochs
-improved accuracy to 64.52%, while test loss increased.
-These exploratory runs used the same test split.
-
-To reproduce the 10-epoch benchmark, run:
+Run all tests, including real-data integration, with:
 
 .. code-block:: bash
 
-   python examples/chars74k_train_eval.py
+   pytest stable_datasets/tests/images/test_chars74k.py -v
+
+   pytest stable_datasets/tests/images/test_chars74k.py -v
+
+The real-data tests require access to the official
+Chars74K archives.
+
+
+Citation
+--------
+
+If you use Chars74K in your research, please cite
+the original dataset paper:
+
+.. code-block:: bibtex
+
+   @inproceedings{deCampos2009chars74k,
+       title={Character Recognition in Natural Images},
+       author={de Campos, Teofilo E. and Babu, Bodla Rakesh and Varma, Manik},
+       booktitle={VISAPP},
+       year={2009}
+   }
+
 
 References
 ----------
 
 - `Chars74K dataset <https://teodecampos.github.io/chars74k/>`_
 - `EnglishHnd archive <https://info-ee.surrey.ac.uk/CVSSP/demos/chars74k/EnglishHnd.tgz>`_
-
-The original dataset is associated with the work
-"Character Recognition in Natural Images"
-by de Campos, Babu, and Varma (2009).
+- `Official split archive <https://info-ee.surrey.ac.uk/CVSSP/demos/chars74k/Lists.tgz>`_
